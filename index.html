@@ -493,6 +493,44 @@
   }
   .toast.is-show{opacity:1;transform:translate(-50%,0)}
 
+  .disc{
+    position:fixed;
+    left:18px;
+    top:calc(12px + env(safe-area-inset-top));
+    width:52px;height:52px;
+    padding:0;border:0;border-radius:50%;
+    cursor:pointer;z-index:6;
+    -webkit-appearance:none;
+    background:
+      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.085) 0 1px, rgba(0,0,0,0) 1px 3.2px),
+      radial-gradient(circle at 34% 26%, rgba(255,255,255,.30), rgba(255,255,255,0) 46%),
+      radial-gradient(circle at 50% 50%, #332B4D 0 68%, #141020 100%);
+    box-shadow:0 10px 22px rgba(4,10,24,.45),inset 0 0 0 1px rgba(255,255,255,.18);
+    animation:discSpin 3.6s linear infinite;
+    animation-play-state:paused;
+    transition:box-shadow .25s ease;
+  }
+  .disc::before{
+    content:"";
+    position:absolute;left:50%;top:50%;
+    width:20px;height:20px;margin:-10px 0 0 -10px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#FF8B9B,#FF5B6E 62%,#D93A52);
+    box-shadow:0 0 0 3px rgba(255,255,255,.16);
+  }
+  .disc::after{
+    content:"";
+    position:absolute;left:50%;top:50%;
+    width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
+    border-radius:50%;background:rgba(16,12,26,.9);
+  }
+  .disc.is-playing{
+    animation-play-state:running;
+    box-shadow:0 10px 26px rgba(255,91,110,.34),0 0 0 1px rgba(255,255,255,.24),inset 0 0 0 1px rgba(255,255,255,.2);
+  }
+  .disc:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:3px}
+  @keyframes discSpin{to{transform:rotate(360deg)}}
+
   @media (max-width:350px){
     .hero__title{font-size:29px}
     .machine{width:88vw}
@@ -643,6 +681,8 @@
   </section>
 </main>
 
+<button class="disc" id="disc" type="button" aria-pressed="false" aria-label="播放生日歌"></button>
+
 <div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-live="polite">
   <div class="capsule" id="capsule">
     <span class="capsule__top"></span>
@@ -720,6 +760,7 @@
 
   var el = {
     brand: document.getElementById("brand"),
+    disc: document.getElementById("disc"),
     quit: document.getElementById("btnQuit"),
     screenLogin: document.getElementById("screenLogin"),
     screenForm: document.getElementById("screenForm"),
@@ -1541,10 +1582,136 @@
     }
   }
 
+  var MUSIC = { playing: false, timer: null, nodes: [], audio: null, fileReady: false };
+
+  var NOTE_HZ = {
+    C4: 261.63, E4: 329.63, G4: 392.00, A4: 440.00, B4: 493.88,
+    C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99
+  };
+
+  var SONG = [
+    ["G4", 0.75], ["G4", 0.25], ["A4", 1], ["G4", 1], ["C5", 1], ["B4", 2],
+    ["G4", 0.75], ["G4", 0.25], ["A4", 1], ["G4", 1], ["D5", 1], ["C5", 2],
+    ["G4", 0.75], ["G4", 0.25], ["G5", 1], ["E5", 1], ["C5", 1], ["B4", 1], ["A4", 2],
+    ["F5", 0.75], ["F5", 0.25], ["E5", 1], ["C5", 1], ["D5", 1], ["C5", 2]
+  ];
+
+  function musicNote(freq, at, dur) {
+    var ctx = getAudio();
+    if (!ctx) return;
+    var tone = ctx.createOscillator();
+    var halo = ctx.createOscillator();
+    var gain = ctx.createGain();
+    var haloGain = ctx.createGain();
+    var end = at + Math.min(dur * 1.15, 1.5);
+
+    tone.type = "sine";
+    tone.frequency.setValueAtTime(freq, at);
+    halo.type = "triangle";
+    halo.frequency.setValueAtTime(freq * 2, at);
+    haloGain.gain.setValueAtTime(0.22, at);
+
+    gain.gain.setValueAtTime(0.0001, at);
+    gain.gain.exponentialRampToValueAtTime(0.17, at + 0.014);
+    gain.gain.exponentialRampToValueAtTime(0.0001, end);
+
+    tone.connect(gain);
+    halo.connect(haloGain);
+    haloGain.connect(gain);
+    gain.connect(ctx.destination);
+
+    tone.start(at);
+    halo.start(at);
+    tone.stop(end + 0.05);
+    halo.stop(end + 0.05);
+
+    MUSIC.nodes.push(tone, halo);
+    tone.onended = function () {
+      MUSIC.nodes = MUSIC.nodes.filter(function (n) { return n !== tone && n !== halo; });
+    };
+  }
+
+  function scheduleSong(at) {
+    var ctx = getAudio();
+    if (!ctx) return;
+    var beat = 0.56;
+    var t = at;
+    SONG.forEach(function (note) {
+      var dur = note[1] * beat;
+      musicNote(NOTE_HZ[note[0]], t, dur);
+      t += dur;
+    });
+    var total = t - at;
+    clearTimeout(MUSIC.timer);
+    MUSIC.timer = setTimeout(function () {
+      if (MUSIC.playing) scheduleSong(ctx.currentTime + 0.6);
+    }, (total + 1.2) * 1000);
+  }
+
+  function paintDisc() {
+    if (!el.disc) return;
+    el.disc.classList.toggle("is-playing", MUSIC.playing);
+    el.disc.setAttribute("aria-pressed", MUSIC.playing ? "true" : "false");
+    el.disc.setAttribute("aria-label", MUSIC.playing ? "关闭背景音乐" : "播放生日歌");
+  }
+
+  function playMusic() {
+    MUSIC.playing = true;
+    paintDisc();
+    if (MUSIC.fileReady && MUSIC.audio) {
+      var started = MUSIC.audio.play();
+      if (started && started.catch) started.catch(function () { startSynth(); });
+      return;
+    }
+    startSynth();
+  }
+
+  function startSynth() {
+    var ctx = getAudio();
+    if (!ctx) return;
+    if (ctx.state === "suspended") ctx.resume();
+    scheduleSong(ctx.currentTime + 0.2);
+  }
+
+  function stopMusic() {
+    MUSIC.playing = false;
+    paintDisc();
+    clearTimeout(MUSIC.timer);
+    MUSIC.timer = null;
+    MUSIC.nodes.forEach(function (n) { try { n.stop(); } catch (e) {} });
+    MUSIC.nodes = [];
+    if (MUSIC.audio) { try { MUSIC.audio.pause(); } catch (e) {} }
+  }
+
+  function initMusic() {
+    if (!el.disc) return;
+
+    if (typeof Audio === "function") {
+      var track = new Audio("music/birthday.mp3");
+      track.loop = true;
+      track.preload = "auto";
+      track.addEventListener("canplay", function () { MUSIC.fileReady = true; });
+      track.addEventListener("error", function () { MUSIC.fileReady = false; });
+      MUSIC.audio = track;
+    }
+
+    paintDisc();
+
+    el.disc.addEventListener("click", function () {
+      if (MUSIC.playing) stopMusic();
+      else playMusic();
+    });
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden && MUSIC.playing) stopMusic();
+    });
+  }
+
   function boot() {
     bindEvents();
     initBackground();
     initDanmaku();
+    initMusic();
     if (!state.token) {
       showScreen(el.screenLogin);
     } else if (round().finishedAt && round().draws.length >= TOTAL_DRAWS) {
