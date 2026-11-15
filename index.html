@@ -1,0 +1,1565 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+<meta name="format-detection" content="telephone=no" />
+<meta name="theme-color" content="#241B3A" />
+<title>生日扭蛋机 · 来扭一颗祝福</title>
+<meta name="description" content="今天是我的生日。回答三个小问题，换三次扭蛋机会。" />
+<style>
+  :root{
+    --ink:#241B3A;
+    --ink-soft:#3B2B58;
+    --paper:#FFF7EC;
+    --coral:#FF5B6E;
+    --coral-deep:#DD3D55;
+    --mint:#3FD3AF;
+    --butter:#FFC44D;
+    --lilac:#A98BFF;
+    --text:rgba(255,255,255,.95);
+    --muted:rgba(255,255,255,.74);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    min-height:100vh;
+    min-height:100dvh;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+    color:var(--text);
+    background:#0E1428;
+    -webkit-tap-highlight-color:transparent;
+    overscroll-behavior-y:contain;
+    overflow-x:hidden;
+  }
+  body.is-locked{overflow:hidden}
+
+  .bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:#101A2E}
+  .bg__slide{
+    position:absolute;inset:0;
+    background-size:cover;
+    background-position:center center;
+    background-repeat:no-repeat;
+    opacity:0;z-index:0;
+    transition:opacity 1.4s ease-in-out;
+    will-change:opacity;
+  }
+  .bg__slide.is-on{opacity:1;z-index:1}
+
+  .bg__glass{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:
+      radial-gradient(115% 78% at 50% 48%, rgba(4,9,20,0) 42%, rgba(4,9,20,.34) 100%),
+      linear-gradient(180deg, rgba(5,10,22,.52) 0%, rgba(5,10,22,.14) 16%, rgba(5,10,22,0) 32%, rgba(5,10,22,0) 62%, rgba(5,10,22,.28) 88%, rgba(5,10,22,.50) 100%),
+      linear-gradient(118deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.03) 16%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 68%, rgba(255,255,255,.05) 84%, rgba(255,255,255,.12) 100%);
+  }
+
+  .bg__frame{
+    position:fixed;inset:9px;z-index:2;pointer-events:none;
+    border:1px solid rgba(255,255,255,.36);
+    border-radius:6px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.10),
+      inset 0 0 0 9px rgba(255,255,255,.035),
+      0 0 0 1px rgba(6,12,26,.20),
+      0 16px 44px rgba(4,9,20,.30);
+  }
+
+  .danmaku{position:fixed;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+  .dm{
+    position:absolute;left:0;top:var(--y,20%);
+    width:var(--w,240px);height:var(--h,96px);
+    animation:drift var(--dur,24s) linear infinite;
+    animation-delay:var(--delay,0s);
+    opacity:var(--op,.86);
+    will-change:transform;
+  }
+  .dm svg{display:block;width:100%;height:100%;overflow:visible}
+  .dm__path{
+    fill:rgba(180,215,250,.08);
+    stroke:rgba(216,238,255,.82);
+    stroke-width:1.9;
+    stroke-linejoin:round;
+    filter:drop-shadow(0 3px 9px rgba(8,20,42,.7));
+  }
+  .dm--dashed .dm__path{stroke-dasharray:6 6}
+  .dm__text{
+    position:absolute;left:0;right:0;top:50%;
+    transform:translateY(-44%);
+    padding:0 30px;
+    text-align:center;
+    font-size:12.5px;font-weight:700;letter-spacing:.08em;
+    color:rgba(255,255,255,.95);
+    text-shadow:0 2px 7px rgba(8,20,44,.9),0 0 3px rgba(8,20,44,.7);
+    line-height:1.3;
+  }
+  @keyframes drift{
+    from{transform:translateX(112vw)}
+    to{transform:translateX(-320px)}
+  }
+
+  .app{
+    position:relative;z-index:4;
+    width:100%;max-width:440px;margin:0 auto;
+    padding:calc(18px + env(safe-area-inset-top)) 20px calc(34px + env(safe-area-inset-bottom));
+    min-height:100vh;min-height:100dvh;
+    display:flex;flex-direction:column;
+  }
+
+  .brand{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:12px;letter-spacing:.22em;color:var(--muted);
+    padding:6px 0 2px;user-select:none;
+  }
+  .brand__ticket{width:9px;height:9px;border-radius:50%;background:var(--butter);box-shadow:0 0 0 3px rgba(255,196,77,.18)}
+
+  .quit{
+    position:absolute;
+    top:calc(12px + env(safe-area-inset-top));
+    right:20px;
+    font-family:inherit;font-size:11.5px;font-weight:700;letter-spacing:.06em;
+    color:var(--muted);
+    background:rgba(255,247,236,.07);
+    border:1px solid rgba(248,239,252,.24);
+    border-radius:999px;padding:6px 12px;
+    cursor:pointer;-webkit-appearance:none;
+    transition:background .2s,color .2s;
+  }
+  .quit:active{background:rgba(255,255,255,.14);color:var(--text)}
+  .quit[hidden]{display:none}
+
+  .screen{display:none;flex:1;flex-direction:column}
+  .screen.is-active{display:flex;animation:fadeUp .42s cubic-bezier(.2,.9,.3,1) both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+  .hero{text-align:center;padding:14px 0 20px}
+  .hero__art{display:block;margin:0 auto 6px;filter:drop-shadow(0 10px 16px rgba(0,0,0,.35));animation:floaty 5s ease-in-out infinite}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+  .hero__title{margin:6px 0 8px;font-size:33px;line-height:1.14;font-weight:900;letter-spacing:-.01em;text-shadow:0 2px 6px rgba(4,10,26,.55),0 6px 26px rgba(4,10,26,.6)}
+  .hero__sub{margin:0;font-size:14px;color:var(--muted);line-height:1.6;text-shadow:0 2px 10px rgba(4,10,26,.75)}
+
+  .card{
+    background:rgba(255,255,255,.16);
+    color:#fff;
+    border:1.5px solid rgba(255,255,255,.55);
+    border-radius:26px;
+    padding:22px 18px 18px;
+    box-shadow:0 12px 32px rgba(4,10,24,.26),inset 0 1px 0 rgba(255,255,255,.45);
+    -webkit-backdrop-filter:blur(20px) saturate(1.2);
+    backdrop-filter:blur(20px) saturate(1.2);
+  }
+
+  .who{
+    display:flex;align-items:center;gap:9px;
+    background:rgba(255,247,236,.08);
+    border:2px dashed rgba(248,239,252,.24);
+    border-radius:14px;padding:9px 14px;margin-bottom:14px;
+    font-size:12.5px;color:var(--muted);
+  }
+  .who b{color:var(--text);font-weight:800;font-size:13.5px}
+  .who__dot{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px rgba(63,211,175,.8)}
+
+  .field{display:block;margin-bottom:18px}
+  .field:last-of-type{margin-bottom:14px}
+  .field__label{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:800;color:rgba(255,255,255,.96);margin-bottom:9px;text-shadow:0 2px 8px rgba(4,10,24,.55)}
+  .field__num{
+    width:21px;height:21px;flex:0 0 auto;border-radius:50%;
+    background:rgba(255,255,255,.92);color:var(--ink);
+    font-size:11px;font-weight:900;display:grid;place-items:center;
+  }
+  .field__input{
+    width:100%;font-family:inherit;font-size:16px;color:#fff;
+    background:rgba(20,28,52,.38);
+    border:1.5px solid rgba(255,255,255,.42);
+    border-radius:15px;
+    padding:12px 14px;outline:none;transition:box-shadow .16s ease,transform .16s ease;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
+    -webkit-backdrop-filter:blur(10px) saturate(1.2);
+    backdrop-filter:blur(10px) saturate(1.2);
+    text-shadow:0 1px 4px rgba(0,0,0,.35);
+    -webkit-appearance:none;appearance:none;
+  }
+  .field__input::placeholder{color:rgba(255,255,255,.62)}
+  .field__input:focus{box-shadow:0 0 0 3px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.25)}
+  .field__input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.75}
+  textarea.field__input{resize:none;min-height:92px;line-height:1.55;padding-top:11px}
+  .field__foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;min-height:16px}
+  .field__err{font-size:11.5px;color:#FFC2CC;font-weight:700;opacity:0;transition:opacity .2s;text-shadow:0 1px 6px rgba(4,10,24,.6)}
+  .field.is-error .field__err{opacity:1}
+  .field.is-error .field__input{border-color:#FF9AA9;animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .field__count{font-size:11px;color:rgba(255,255,255,.74);margin-left:auto}
+
+  .btn{
+    display:block;width:100%;font-family:inherit;font-size:17px;font-weight:900;letter-spacing:.02em;
+    color:#1F1830;background:rgba(255,196,77,.72);
+    border:1.5px solid rgba(255,255,255,.62);border-radius:17px;
+    padding:14px 18px;cursor:pointer;
+    box-shadow:0 6px 0 rgba(12,18,38,.32),0 10px 26px rgba(4,10,24,.22);
+    -webkit-backdrop-filter:blur(14px) saturate(1.2);
+    backdrop-filter:blur(14px) saturate(1.2);
+    transition:transform .12s ease,box-shadow .12s ease,background .2s;
+    -webkit-appearance:none;
+  }
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(12,18,38,.32)}
+  .btn:focus-visible{outline:3px solid rgba(255,255,255,.8);outline-offset:3px}
+  .btn--coral{background:rgba(255,91,110,.68);color:#fff;text-shadow:0 1px 6px rgba(90,10,30,.45)}
+  .btn--ghost{background:rgba(255,255,255,.10);color:rgba(255,255,255,.92);border-color:rgba(255,255,255,.45);box-shadow:none;font-size:14px;font-weight:700;padding:11px}
+  .btn--ghost:active{transform:none;box-shadow:none;background:rgba(255,255,255,.18)}
+  .btn--ghost:active{transform:none;box-shadow:none;background:rgba(255,255,255,.06)}
+  .btn[disabled]{opacity:.45;pointer-events:none}
+  .btn + .btn--ghost{margin-top:12px}
+
+  .hud{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin:8px 0 16px;padding:11px 15px;
+    border:2px dashed rgba(248,239,252,.26);border-radius:15px;
+  }
+  .hud__label{font-size:12.5px;color:var(--muted);letter-spacing:.04em;white-space:nowrap}
+  .slots{display:flex;gap:9px;align-items:center}
+  .slot{
+    width:19px;height:19px;border-radius:50%;
+    border:2px solid rgba(248,239,252,.5);
+    background:rgba(255,255,255,.07);
+    transition:all .3s ease;
+  }
+  .slot.is-full{background:var(--butter);border-color:#FFF7EC;box-shadow:0 0 12px rgba(255,196,77,.55)}
+  .slot.is-used{background:transparent;border-color:rgba(248,239,252,.22);transform:scale(.8);box-shadow:none}
+
+  .stage-machine{display:flex;flex:1;align-items:center;justify-content:center;padding:4px 0 10px}
+
+  .machine{position:relative;width:min(80vw,300px);filter:drop-shadow(0 22px 26px rgba(0,0,0,.5))}
+  .machine__dome{
+    position:relative;height:136px;margin:0 10px;
+    border-radius:160px 160px 14px 14px;
+    border:3px solid rgba(255,247,236,.86);
+    background:linear-gradient(168deg,rgba(255,255,255,.26),rgba(255,255,255,.05) 48%,rgba(255,255,255,.14));
+    overflow:hidden;
+    box-shadow:inset 0 -18px 30px rgba(0,0,0,.25);
+  }
+  .machine__shine{
+    position:absolute;left:16%;top:10%;width:38%;height:46%;
+    border-radius:50%;background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(255,255,255,0));
+    transform:rotate(-16deg);pointer-events:none;
+  }
+  .ball{
+    position:absolute;width:44px;height:44px;border-radius:50%;
+    left:50%;transform:translateX(-50%);
+    background:var(--c,#FFC44D);
+    box-shadow:inset -6px -7px 0 rgba(0,0,0,.15),inset 6px 7px 0 rgba(255,255,255,.45);
+  }
+  .ball::after{
+    content:"";position:absolute;left:8px;top:7px;width:11px;height:8px;border-radius:50%;
+    background:rgba(255,255,255,.7);transform:rotate(-25deg);
+  }
+  .machine.is-turning .ball{
+    animation-name:rollBall;
+    animation-duration:var(--sp,.6s);
+    animation-delay:var(--dl,0s);
+    animation-timing-function:cubic-bezier(.45,.05,.55,.95);
+    animation-iteration-count:infinite;
+    animation-direction:alternate;
+  }
+  @keyframes rollBall{
+    0%{transform:translateX(-50%) translate3d(0,0,0) rotate(0deg)}
+    28%{transform:translateX(-50%) translate3d(var(--ax,9px),var(--ay,-9px),0) rotate(105deg)}
+    58%{transform:translateX(-50%) translate3d(var(--bx,-9px),var(--by,-12px),0) rotate(215deg)}
+    82%{transform:translateX(-50%) translate3d(var(--cx,6px),var(--cy,2px),0) rotate(295deg)}
+    100%{transform:translateX(-50%) translate3d(0,0,0) rotate(360deg)}
+  }
+  .machine.is-turning .machine__dome{animation:domeTremble .42s ease-in-out infinite alternate}
+  @keyframes domeTremble{from{transform:translateY(0)}to{transform:translateY(1.5px)}}
+
+  .machine__collar{
+    position:relative;height:15px;margin:-6px 4px 0;z-index:2;
+    background:linear-gradient(180deg,rgba(255,176,189,.86),rgba(248,117,138,.82));
+    border:2.5px solid var(--ink);border-radius:9px;
+  }
+  .machine__body{
+    position:relative;margin-top:-7px;height:188px;
+    background:linear-gradient(178deg,rgba(255,107,125,.80) 0%,rgba(238,74,97,.77) 62%,rgba(213,55,80,.74) 100%);
+    border:2.5px solid var(--ink);
+    border-radius:15px 15px 26px 26px;
+    box-shadow:inset -12px 0 0 rgba(0,0,0,.08),inset 12px 0 0 rgba(255,255,255,.16),inset 0 -20px 30px rgba(120,10,40,.18);
+    -webkit-backdrop-filter:blur(9px) saturate(1.15);
+    backdrop-filter:blur(9px) saturate(1.15);
+  }
+  .machine__plate{
+    position:absolute;left:50%;top:9px;transform:translateX(-50%);
+    width:78%;height:12px;border-radius:8px;background:rgba(0,0,0,.16);
+  }
+  .knob{
+    position:absolute;left:50%;top:30px;transform:translateX(-50%);
+    width:74px;height:74px;border-radius:50%;
+    background:radial-gradient(circle at 34% 28%,rgba(255,254,250,.92),rgba(255,237,201,.82) 55%,rgba(231,197,140,.76));
+    border:2.5px solid var(--ink);
+    box-shadow:0 5px 0 rgba(0,0,0,.26),inset 0 0 0 7px rgba(255,255,255,.45);
+    display:grid;place-items:center;
+    transition:transform .95s cubic-bezier(.36,.9,.26,1);
+    cursor:pointer;
+  }
+  .knob::before,.knob::after{content:"";position:absolute;background:var(--ink);border-radius:6px;opacity:.8}
+  .knob::before{width:11px;height:48px}
+  .knob::after{width:48px;height:11px}
+  .knob__hub{position:absolute;width:20px;height:20px;border-radius:50%;background:#FFE9BE;border:2.5px solid var(--ink);z-index:2}
+  .machine.is-turning .knob{transform:translateX(-50%) rotate(430deg)}
+  .knob:active{filter:brightness(1.06)}
+
+  .tray{
+    position:absolute;left:50%;bottom:20px;transform:translateX(-50%);
+    width:138px;height:64px;
+    background:linear-gradient(180deg,rgba(21,14,38,.74),rgba(36,25,54,.68));
+    border:2.5px solid var(--ink);border-radius:12px 12px 24px 24px;
+    box-shadow:inset 0 7px 16px rgba(0,0,0,.55);
+    overflow:hidden;
+  }
+  .tray__lid{
+    position:absolute;left:4px;right:4px;top:0;height:26px;z-index:3;
+    background:linear-gradient(180deg,rgba(255,154,169,.88),rgba(238,90,112,.84));
+    border:2.5px solid var(--ink);border-radius:8px 8px 4px 4px;
+    transform-origin:top center;
+    transition:transform .3s ease;
+  }
+  .machine.is-dropped .tray__lid{transform:rotateX(-72deg)}
+  .tray__capsule{
+    position:absolute;left:50%;bottom:-46px;transform:translateX(-50%);
+    width:50px;height:50px;border-radius:50%;
+    border:2.5px solid var(--ink);
+    background:linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0)),var(--pc,#FFC44D);
+    box-shadow:inset -5px -6px 0 rgba(0,0,0,.15);
+    opacity:0;
+  }
+  .machine.is-dropped .tray__capsule{animation:dropOut .55s cubic-bezier(.18,1.5,.45,1) forwards}
+  @keyframes dropOut{
+    0%{opacity:0;bottom:-46px}
+    45%{opacity:1;bottom:8px}
+    70%{bottom:16px}
+    100%{opacity:1;bottom:6px}
+  }
+
+  .machine__foot{display:flex;justify-content:space-between;padding:0 22px;margin-top:-6px}
+  .machine__foot span{width:34px;height:14px;border:2.5px solid var(--ink);border-radius:0 0 9px 9px;background:rgba(184,44,67,.85)}
+
+  .machine-sign{
+    margin:14px auto 0;width:max-content;max-width:100%;
+    padding:7px 16px;border-radius:999px;
+    background:rgba(255,247,236,.1);
+    border:2px dashed rgba(255,247,236,.3);
+    color:var(--muted);font-size:12.5px;letter-spacing:.08em;
+    transition:opacity .3s;
+  }
+  .machine-sign.is-hidden{opacity:0}
+
+  .cta{margin-top:auto;padding-top:18px}
+  .hint{margin:12px 0 0;text-align:center;font-size:12px;color:var(--muted);line-height:1.7}
+
+  .reveal{
+    position:fixed;inset:0;z-index:60;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:26px 22px calc(26px + env(safe-area-inset-bottom));
+    background:rgba(16,10,28,.84);
+    -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);
+    opacity:0;visibility:hidden;
+    transition:opacity .3s ease,visibility .3s ease;
+  }
+  .reveal.is-open{opacity:1;visibility:visible}
+
+  .capsule{position:relative;width:132px;height:132px;margin:0 auto 22px}
+  .capsule__top,.capsule__bottom{
+    position:absolute;left:0;width:132px;height:68px;
+    border:3px solid var(--ink);
+    background:var(--pc,#FFC44D);
+    transition:transform .55s cubic-bezier(.3,1.25,.5,1);
+    overflow:hidden;
+  }
+  .capsule__top{top:0;border-radius:68px 68px 8px 8px}
+  .capsule__bottom{top:66px;border-radius:8px 8px 68px 68px;filter:brightness(.92)}
+  .capsule__top::after,.capsule__bottom::after{
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(150deg,rgba(255,255,255,.55),rgba(255,255,255,0) 58%);
+  }
+  .capsule.is-shaking{animation:capsuleShake .45s ease-in-out 2}
+  @keyframes capsuleShake{25%{transform:rotate(-8deg) scale(1.03)}75%{transform:rotate(8deg) scale(1.03)}}
+  .capsule.is-open .capsule__top{transform:translateY(-88px) rotate(-20deg)}
+  .capsule.is-open .capsule__bottom{transform:translateY(12px) scale(.96);opacity:.5}
+
+  .prize{
+    width:100%;max-width:330px;text-align:center;
+    background:rgba(22,29,52,.66);color:#fff;
+    border:1.5px solid rgba(255,255,255,.5);border-radius:24px;
+    padding:22px 20px 18px;
+    box-shadow:0 14px 40px rgba(4,10,24,.45),inset 0 1px 0 rgba(255,255,255,.26);
+    -webkit-backdrop-filter:blur(18px) saturate(1.2);
+    backdrop-filter:blur(18px) saturate(1.2);
+    opacity:0;transform:translateY(16px) scale(.9);
+    transition:opacity .38s ease,transform .42s cubic-bezier(.18,1.3,.4,1);
+  }
+  .prize.is-show{opacity:1;transform:none}
+  .prize__rank{
+    display:inline-block;margin:0 0 10px;padding:4px 15px;border-radius:999px;
+    font-size:12.5px;font-weight:900;letter-spacing:.16em;
+    border:1.5px solid rgba(255,255,255,.55);
+    background:var(--butter);color:var(--ink);
+  }
+  .prize__icon{font-size:46px;line-height:1;margin:2px 0 8px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.15))}
+  .prize__title{margin:0 0 8px;font-size:22px;font-weight:900;line-height:1.3;letter-spacing:-.01em}
+  .prize__note{margin:0 auto 16px;max-width:250px;font-size:13px;line-height:1.65;color:rgba(255,255,255,.78)}
+  .prize__meta{margin:10px 0 0;font-size:11.5px;color:rgba(255,255,255,.58);letter-spacing:.04em}
+
+  .final{flex:1;display:flex;flex-direction:column;padding-top:6px}
+  .final__eyebrow{text-align:center;font-size:12px;letter-spacing:.2em;color:var(--muted);margin:2px 0 12px}
+
+  .trophy{
+    position:relative;text-align:center;
+    background:rgba(22,29,52,.56);
+    color:#fff;border:1.5px solid rgba(255,255,255,.45);border-radius:26px;
+    padding:22px 20px 24px;
+    box-shadow:0 14px 40px rgba(4,10,24,.4),inset 0 1px 0 rgba(255,255,255,.24);
+    -webkit-backdrop-filter:blur(18px) saturate(1.2);
+    backdrop-filter:blur(18px) saturate(1.2);
+    overflow:hidden;
+  }
+  .trophy::before{
+    content:"";position:absolute;inset:-40% -10% auto;
+    height:70%;background:radial-gradient(circle,rgba(255,196,77,.55),transparent 70%);
+  }
+  .trophy > *{position:relative}
+  .trophy__icon{font-size:52px;line-height:1;margin-bottom:6px}
+  .trophy__label{display:inline-block;margin:0 0 8px;padding:4px 16px;border-radius:999px;font-size:12.5px;font-weight:900;letter-spacing:.16em;background:rgba(255,91,110,.82);color:#fff;border:1.5px solid rgba(255,255,255,.5)}
+  .trophy__title{margin:0 0 6px;font-size:26px;font-weight:900;line-height:1.25}
+  .trophy__sub{margin:0;font-size:13px;color:rgba(255,255,255,.76);line-height:1.6}
+
+  .voucher{
+    margin-top:16px;background:rgba(20,27,49,.60);color:#fff;
+    border:1.5px solid rgba(255,255,255,.42);border-radius:22px;
+    padding:18px 18px 16px;position:relative;
+    -webkit-backdrop-filter:blur(16px) saturate(1.2);
+    backdrop-filter:blur(16px) saturate(1.2);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .voucher__head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:12px;border-bottom:2px dashed rgba(255,255,255,.28)}
+  .voucher__name{font-size:15px;font-weight:900}
+  .voucher__no{font-size:11px;letter-spacing:.04em;color:rgba(255,255,255,.62);font-weight:700;white-space:nowrap}
+  .voucher__row{display:flex;justify-content:space-between;gap:14px;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.15)}
+  .voucher__row:last-child{border-bottom:0}
+  .voucher__k{color:rgba(255,255,255,.62);flex:0 0 auto}
+  .voucher__v{text-align:right;font-weight:700;word-break:break-all}
+
+  .draws{list-style:none;margin:6px 0 0;padding:0}
+  .draws li{display:flex;align-items:center;gap:10px;padding:7px 0;font-size:13px}
+  .draws__dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto;border:1.5px solid rgba(255,255,255,.55)}
+  .draws__idx{color:rgba(255,255,255,.6);font-size:12px;width:52px;flex:0 0 auto}
+  .draws__name{font-weight:700}
+  .draws__time{margin-left:auto;color:rgba(255,255,255,.55);font-size:11.5px;flex:0 0 auto}
+
+  .rules{margin:18px 0 0;border-top:1px dashed rgba(248,239,252,.22);padding-top:14px}
+  .rules summary{font-size:12.5px;color:var(--muted);cursor:pointer;list-style:none;text-align:center;letter-spacing:.06em}
+  .rules summary::-webkit-details-marker{display:none}
+  .rules p{margin:10px 0 0;font-size:12px;line-height:1.85;color:var(--muted)}
+  .rules b{color:var(--text);font-weight:700}
+
+  .past{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+  .past__item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 13px;border-radius:12px;
+    background:rgba(255,255,255,.05);
+    border:1px solid rgba(248,239,252,.14);
+    font-size:12.5px;color:var(--muted);
+  }
+  .past__round{color:var(--text);font-weight:800}
+  .past__prize{color:var(--text);font-weight:700;margin-left:auto;text-align:right}
+
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}
+  .confetti i{
+    position:absolute;top:-16px;width:9px;height:14px;border-radius:2px;opacity:0;
+    animation:fall linear forwards;
+  }
+  @keyframes fall{
+    0%{opacity:1;transform:translateY(0) rotate(0)}
+    100%{opacity:0;transform:translateY(110vh) rotate(620deg)}
+  }
+
+  .toast{
+    position:fixed;left:50%;bottom:calc(34px + env(safe-area-inset-bottom));
+    transform:translate(-50%,14px);
+    padding:10px 20px;border-radius:999px;
+    background:rgba(248,239,252,.96);color:var(--ink);
+    font-size:13px;font-weight:700;white-space:nowrap;max-width:88vw;
+    overflow:hidden;text-overflow:ellipsis;
+    opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+    z-index:80;box-shadow:0 6px 18px rgba(0,0,0,.3);
+  }
+  .toast.is-show{opacity:1;transform:translate(-50%,0)}
+
+  @media (max-width:350px){
+    .hero__title{font-size:29px}
+    .machine{width:88vw}
+    .prize__title{font-size:20px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+    .danmaku{display:none!important}
+  }
+
+</style>
+</head>
+<body>
+
+<div class="bg" id="bg"></div>
+<div class="bg__glass"></div>
+<div class="bg__frame"></div>
+<div class="danmaku" id="danmaku" aria-hidden="true"></div>
+
+<main class="app">
+  <div class="brand" id="brand"><span class="brand__ticket"></span>生日扭蛋机</div>
+  <button class="quit" type="button" id="btnQuit" hidden>退出登录</button>
+
+  <section class="screen" id="screenLogin">
+    <div class="hero">
+      <svg class="hero__art" width="92" height="92" viewBox="0 0 120 120" aria-hidden="true">
+        <g stroke="#241B3A" stroke-width="3.6" stroke-linejoin="round" stroke-linecap="round">
+          <ellipse cx="60" cy="103" rx="42" ry="7" fill="#241B3A" opacity=".25" stroke="none"/>
+          <rect x="22" y="62" width="76" height="38" rx="11" fill="#FFF7EC"/>
+          <path d="M22 74c7 0 7 7 14 7s7-7 14-7 7 7 14 7 7-7 14-7 7 7 7 7v-8c0-6-4-11-11-11H33c-7 0-11 5-11 11z" fill="#FF8FB1"/>
+          <rect x="56" y="34" width="9" height="18" rx="4" fill="#3FD3AF"/>
+          <path d="M60.5 33c-1-6 3-10 3-10s1 4 3 6c2 2 1 4-1 5s-4 1-5-1z" fill="#FFC44D"/>
+          <circle cx="36" cy="86" r="3" fill="#A98BFF" stroke="none"/>
+          <circle cx="52" cy="90" r="3" fill="#FFC44D" stroke="none"/>
+          <circle cx="84" cy="88" r="3" fill="#3FD3AF" stroke="none"/>
+          <path d="M22 100h76"/>
+        </g>
+      </svg>
+      <h1 class="hero__title">先留个称呼<br />再开始扭蛋</h1>
+    </div>
+
+    <form class="card" id="loginForm" novalidate>
+      <label class="field" id="fNick">
+        <span class="field__label"><i class="field__num">名</i>你的称呼</span>
+        <input class="field__input" id="qNick" type="text" inputmode="text" maxlength="12" autocomplete="nickname" placeholder="比如：小雨" />
+        <span class="field__foot"><span class="field__err">留个称呼吧，方便兑奖时对号</span></span>
+      </label>
+      <button class="btn btn--coral" type="submit" id="btnLogin">进入扭蛋机</button>
+    </form>
+    <p class="hint">不用手机号，也不用授权微信，点开就能玩。</p>
+  </section>
+
+  <section class="screen" id="screenForm">
+    <div class="who"><span class="who__dot"></span>已登录 <b id="whoName">—</b> · 第 <b id="whoRound">1</b> 轮</div>
+    <div class="hero" style="padding-top:0">
+      <h1 class="hero__title" style="font-size:28px">今天，<br />是谁的生日？</h1>
+      <p class="hero__sub">回答三个小问题，换三次扭蛋机会。</p>
+    </div>
+
+    <form class="card" id="form" novalidate>
+      <label class="field" id="fName">
+        <span class="field__label"><i class="field__num">1</i>今天是谁的生日</span>
+        <input class="field__input" id="qName" type="text" inputmode="text" maxlength="20" autocomplete="off" placeholder="写下寿星的名字" />
+        <span class="field__foot"><span class="field__err">还没写名字哦</span></span>
+      </label>
+
+      <label class="field" id="fBirth">
+        <span class="field__label"><i class="field__num">2</i>小寿星的出生日期</span>
+        <input class="field__input" id="qBirth" type="date" />
+        <span class="field__foot"><span class="field__err">选一个出生日期吧</span></span>
+      </label>
+
+      <label class="field" id="fWish">
+        <span class="field__label"><i class="field__num">3</i>许下你的心愿</span>
+        <textarea class="field__input" id="qWish" maxlength="60" placeholder="想对寿星说的话，都能写在这里"></textarea>
+        <span class="field__foot"><span class="field__err">心愿还没许呢</span><span class="field__count" id="wishCount">0/60</span></span>
+      </label>
+
+      <button class="btn btn--coral" type="submit" id="btnSubmit">换取 3 次扭蛋机会</button>
+    </form>
+    <p class="hint">三题没有标准答案，怎么填都对。</p>
+  </section>
+
+  <section class="screen" id="screenMachine">
+    <div class="hud">
+      <span class="hud__label" id="roundLabel">第 1 轮 · 剩余扭蛋</span>
+      <span class="slots" id="slots"></span>
+    </div>
+
+    <div class="stage-machine">
+      <div>
+        <div class="machine" id="machine">
+          <div class="machine__dome" id="dome">
+            <span class="machine__shine"></span>
+            <span class="ball" style="--c:#FFC44D;left:16%;bottom:6px;--ax:12px;--ay:-9px;--bx:-8px;--by:-14px;--cx:6px;--cy:1px;--sp:.58s;--dl:-.10s"></span>
+            <span class="ball" style="--c:#7FA8FF;left:40%;bottom:4px;--ax:-10px;--ay:-12px;--bx:9px;--by:-5px;--cx:-5px;--cy:2px;--sp:.66s;--dl:-.32s"></span>
+            <span class="ball" style="--c:#FF8FB1;left:64%;bottom:7px;--ax:8px;--ay:-14px;--bx:-11px;--by:-6px;--cx:3px;--cy:0px;--sp:.54s;--dl:-.05s"></span>
+            <span class="ball" style="--c:#3FD3AF;left:86%;bottom:5px;--ax:-12px;--ay:-8px;--bx:7px;--by:-13px;--cx:-3px;--cy:2px;--sp:.72s;--dl:-.41s"></span>
+            <span class="ball" style="--c:#FF8FB1;left:28%;bottom:42px;--ax:10px;--ay:-7px;--bx:-9px;--by:-11px;--cx:4px;--cy:3px;--sp:.62s;--dl:-.22s"></span>
+            <span class="ball" style="--c:#FFC44D;left:52%;bottom:40px;--ax:-8px;--ay:-13px;--bx:11px;--by:-4px;--cx:-6px;--cy:1px;--sp:.56s;--dl:-.36s"></span>
+            <span class="ball" style="--c:#A98BFF;left:76%;bottom:43px;--ax:9px;--ay:-10px;--bx:-12px;--by:-8px;--cx:5px;--cy:2px;--sp:.70s;--dl:-.15s"></span>
+            <span class="ball" style="--c:#7FA8FF;left:40%;bottom:78px;--ax:-11px;--ay:-6px;--bx:8px;--by:-12px;--cx:-4px;--cy:1px;--sp:.64s;--dl:-.28s"></span>
+            <span class="ball" style="--c:#3FD3AF;left:63%;bottom:80px;--ax:7px;--ay:-11px;--bx:-10px;--by:-7px;--cx:4px;--cy:0px;--sp:.50s;--dl:-.48s"></span>
+          </div>
+          <div class="machine__collar"></div>
+          <div class="machine__body">
+            <span class="machine__plate"></span>
+            <button class="knob" id="knob" type="button" aria-label="转动扭蛋机摇柄">
+              <span class="knob__hub"></span>
+            </button>
+            <div class="tray">
+              <span class="tray__lid"></span>
+              <span class="tray__capsule" id="trayCapsule"></span>
+            </div>
+          </div>
+          <div class="machine__foot"><span></span><span></span></div>
+        </div>
+        <div class="machine-sign" id="machineSign">扭一下摇柄 · 好运掉出来</div>
+      </div>
+    </div>
+
+    <div class="cta">
+      <button class="btn" type="button" id="btnTurn">转动扭蛋机</button>
+      <p class="hint">共三次机会，最终按最高奖项兑奖。</p>
+    </div>
+  </section>
+
+  <section class="screen" id="screenFinal">
+    <p class="final__eyebrow" id="finalEyebrow">第 1 轮 · 三次机会已用完</p>
+    <div class="trophy" id="trophy"></div>
+    <div class="voucher" id="voucher"></div>
+    <div class="cta">
+      <button class="btn" type="button" id="btnCopy">复制兑奖凭证</button>
+      <button class="btn btn--ghost" type="button" id="btnAgain">再玩一轮（重新答题）</button>
+      <p class="hint">截图发给寿星，或点上面的按钮复制文字，凭凭证号兑奖。</p>
+    </div>
+    <details class="rules" id="pastBox" hidden>
+      <summary>查看往次记录</summary>
+      <div class="past" id="pastList"></div>
+    </details>
+    <details class="rules">
+      <summary>查看活动规则</summary>
+      <p>每个人有 <b>3 次</b> 扭蛋机会，奖项随机产生。<br />
+      三次结果里取 <b>最高奖项</b> 兑奖，同一份凭证不重复兑奖。<br />
+      想再玩一轮就重新答一遍三个问题，每轮机会各算各的，记录都会保留。<br />
+      兑奖方式：把凭证截图或复制文字发给寿星即可。</p>
+    </details>
+  </section>
+</main>
+
+<div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-live="polite">
+  <div class="capsule" id="capsule">
+    <span class="capsule__top"></span>
+    <span class="capsule__bottom"></span>
+  </div>
+  <article class="prize" id="prizeCard">
+    <p class="prize__rank" id="prizeRank">一等奖</p>
+    <div class="prize__icon" id="prizeIcon">🧧</div>
+    <h2 class="prize__title" id="prizeTitle"></h2>
+    <p class="prize__note" id="prizeNote"></p>
+    <button class="btn btn--coral" type="button" id="btnNext"></button>
+    <p class="prize__meta" id="prizeMeta"></p>
+  </article>
+</div>
+
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var CLOUD = { url: "https://vxzisqmhkuelliwnlhis.supabase.co/rest/v1/", anonKey: "sb_publishable_NfouWampYSpzJDGtUEaIew_zaPMBwAX" };
+  var STORE_KEY = "bday_gacha_v2";
+  var OUTBOX_KEY = "bday_gacha_outbox_v2";
+  var TOTAL_DRAWS = 3;
+
+  var PHOTOS = [
+    { src: "img/02.jpg", pos: "36% 42%" },
+    { src: "img/07.jpg", pos: "61% 44%" },
+    { src: "img/06.jpg", pos: "34% 42%" },
+    { src: "img/05.jpg", pos: "48% 22%" },
+    { src: "img/03.jpg", pos: "54% 42%" },
+    { src: "img/04.jpg", pos: "54% 40%" },
+    { src: "img/01.jpg", pos: "68% 42%" }
+  ];
+
+  var WISHES = [
+    "生日快乐呀",
+    "愿你被爱包围",
+    "岁岁平安",
+    "天天开心",
+    "被世界温柔以待",
+    "想要的都拥有",
+    "新的一岁闪闪发光",
+    "平安顺遂",
+    "永远十八岁",
+    "笑口常开",
+    "所愿皆成真",
+    "愿你眼里有光",
+    "日子甜甜的",
+    "愿你被偏爱",
+    "岁岁常欢愉",
+    "万事胜意",
+    "身体健康",
+    "前程似锦",
+    "心上无忧",
+    "一切都会变好"
+  ];
+
+  var CLOUD_SVG =
+    '<svg viewBox="0 0 240 96" aria-hidden="true"><path class="dm__path" d="' +
+    "M44 78C24 78 15 63 26 53C13 41 23 25 39 27C41 10 67 4 79 17C90 3 116 3 126 18" +
+    "C141 8 161 17 160 31C178 27 194 40 187 54C204 57 205 78 187 78Z" +
+    '"></path></svg>';
+
+  var PRIZES = [
+    { key: "first", rank: 1, label: "一等奖", name: "288 元生日红包", icon: "🧧", color: "#FF5B6E",
+      note: "恭喜！凭这张凭证找寿星领一个 288 元的生日红包。" },
+    { key: "second", rank: 2, label: "二等奖", name: "精致 6 寸生日蛋糕", icon: "🎂", color: "#A98BFF",
+      note: "恭喜！寿星请你吃一份精致的 6 寸生日蛋糕。" },
+    { key: "third", rank: 3, label: "三等奖", name: "自助餐券一张", icon: "🍲", color: "#3FD3AF",
+      note: "恭喜！牛 New 寿喜烧 / 牛小新 自助餐饮券一张。" }
+  ];
+
+  var el = {
+    brand: document.getElementById("brand"),
+    quit: document.getElementById("btnQuit"),
+    screenLogin: document.getElementById("screenLogin"),
+    screenForm: document.getElementById("screenForm"),
+    screenMachine: document.getElementById("screenMachine"),
+    screenFinal: document.getElementById("screenFinal"),
+    loginForm: document.getElementById("loginForm"),
+    qNick: document.getElementById("qNick"),
+    fNick: document.getElementById("fNick"),
+    btnLogin: document.getElementById("btnLogin"),
+    whoName: document.getElementById("whoName"),
+    whoRound: document.getElementById("whoRound"),
+    form: document.getElementById("form"),
+    qName: document.getElementById("qName"),
+    qBirth: document.getElementById("qBirth"),
+    qWish: document.getElementById("qWish"),
+    wishCount: document.getElementById("wishCount"),
+    fName: document.getElementById("fName"),
+    fBirth: document.getElementById("fBirth"),
+    fWish: document.getElementById("fWish"),
+    roundLabel: document.getElementById("roundLabel"),
+    slots: document.getElementById("slots"),
+    machine: document.getElementById("machine"),
+    knob: document.getElementById("knob"),
+    trayCapsule: document.getElementById("trayCapsule"),
+    machineSign: document.getElementById("machineSign"),
+    btnTurn: document.getElementById("btnTurn"),
+    reveal: document.getElementById("reveal"),
+    capsule: document.getElementById("capsule"),
+    prizeCard: document.getElementById("prizeCard"),
+    prizeRank: document.getElementById("prizeRank"),
+    prizeIcon: document.getElementById("prizeIcon"),
+    prizeTitle: document.getElementById("prizeTitle"),
+    prizeNote: document.getElementById("prizeNote"),
+    prizeMeta: document.getElementById("prizeMeta"),
+    btnNext: document.getElementById("btnNext"),
+    finalEyebrow: document.getElementById("finalEyebrow"),
+    trophy: document.getElementById("trophy"),
+    voucher: document.getElementById("voucher"),
+    btnCopy: document.getElementById("btnCopy"),
+    btnAgain: document.getElementById("btnAgain"),
+    pastBox: document.getElementById("pastBox"),
+    pastList: document.getElementById("pastList"),
+    confetti: document.getElementById("confetti"),
+    toast: document.getElementById("toast")
+  };
+
+  var state = loadState();
+  var busy = false;
+  var pendingPrize = null;
+  var audioCtx = null;
+
+  function online() {
+    return !!(CLOUD.url && CLOUD.anonKey);
+  }
+
+  function uuid() {
+    if (window.crypto && window.crypto.randomUUID) {
+      try { return window.crypto.randomUUID(); } catch (e) {}
+    }
+    var s = "";
+    for (var i = 0; i < 32; i++) s += "0123456789abcdef"[Math.floor(Math.random() * 16)];
+    return s.slice(0, 8) + "-" + s.slice(8, 12) + "-" + s.slice(12, 16) + "-" + s.slice(16, 20) + "-" + s.slice(20);
+  }
+
+  function newRound(n) {
+    return {
+      round: n,
+      voucher: "",
+      name: "",
+      birthday: "",
+      wish: "",
+      answeredAt: "",
+      draws: [],
+      finishedAt: ""
+    };
+  }
+
+  function blankState() {
+    return { token: "", nickname: "", createdAt: "", rounds: [newRound(1)] };
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return blankState();
+      var p = JSON.parse(raw);
+      if (!p || typeof p !== "object" || !p.token) return blankState();
+      var base = blankState();
+      base.token = String(p.token);
+      base.nickname = String(p.nickname || "");
+      base.createdAt = p.createdAt || "";
+      if (Array.isArray(p.rounds) && p.rounds.length) {
+        base.rounds = p.rounds.map(function (r, i) {
+          var nr = newRound(Number(r.round) || i + 1);
+          nr.voucher = r.voucher || "";
+          nr.name = r.name || "";
+          nr.birthday = r.birthday || "";
+          nr.wish = r.wish || "";
+          nr.answeredAt = r.answeredAt || "";
+          nr.finishedAt = r.finishedAt || "";
+          nr.draws = Array.isArray(r.draws) ? r.draws.slice(0, TOTAL_DRAWS) : [];
+          return nr;
+        });
+      }
+      return base;
+    } catch (e) {
+      return blankState();
+    }
+  }
+
+  function saveState() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  function round() {
+    return state.rounds[state.rounds.length - 1];
+  }
+
+  function remaining() {
+    return TOTAL_DRAWS - round().draws.length;
+  }
+
+  function prizeByKey(key) {
+    for (var i = 0; i < PRIZES.length; i++) if (PRIZES[i].key === key) return PRIZES[i];
+    return null;
+  }
+
+  function bestOf(draws) {
+    if (!draws || !draws.length) return null;
+    return draws.reduce(function (best, d) {
+      var p = prizeByKey(d.key);
+      if (!p) return best;
+      return !best || p.rank < best.rank ? p : best;
+    }, null);
+  }
+
+  function pickPrizeLocal(draws) {
+    var r = Math.random();
+    if (window.crypto && window.crypto.getRandomValues) {
+      var buf = new Uint32Array(1);
+      window.crypto.getRandomValues(buf);
+      r = buf[0] / 4294967296;
+    }
+    var list = draws || [];
+    if (list.length === TOTAL_DRAWS - 1) {
+      var hasFirst = list.some(function (d) { return d.rank === 1; });
+      if (!hasFirst) return r < 0.5 ? PRIZES[0] : PRIZES[1];
+    }
+    if (r < 0.25) return PRIZES[0];
+    if (r < 0.60) return PRIZES[1];
+    return PRIZES[2];
+  }
+
+  function cloudBase() {
+    return CLOUD.url
+      .replace(/\s+/g, "")
+      .replace(/\/+$/, "")
+      .replace(/\/rest\/v1$/, "")
+      .replace(/\/+$/, "");
+  }
+
+  function rpc(name, payload) {
+    var base = cloudBase();
+    return fetch(base + "/rest/v1/rpc/" + name, {
+      method: "POST",
+      headers: {
+        "apikey": CLOUD.anonKey,
+        "Authorization": "Bearer " + CLOUD.anonKey,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      if (!res.ok) {
+        return res.text().then(function (t) {
+          var err = new Error("rpc " + name + " " + res.status + " " + t);
+          err.status = res.status;
+          err.body = t;
+          throw err;
+        });
+      }
+      return res.json();
+    });
+  }
+
+  function cloudErrorText(err, fallback) {
+    var body = String((err && err.body) || "");
+    if (err && (err.status === 404 || body.indexOf("PGRST202") >= 0)) return "云端没建好，先跑一次建表脚本";
+    if (err && err.status === 401) return "密钥不对，检查 anon key";
+    if (err && err.status) return "请求失败，HTTP " + err.status;
+    return fallback;
+  }
+
+  function showScreen(node) {
+    [el.screenLogin, el.screenForm, el.screenMachine, el.screenFinal].forEach(function (s) {
+      s.classList.toggle("is-active", s === node);
+    });
+    el.quit.hidden = node === el.screenLogin;
+    window.scrollTo(0, 0);
+  }
+
+  function toast(text) {
+    el.toast.textContent = text;
+    el.toast.classList.add("is-show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.toast.classList.remove("is-show"); }, 2200);
+  }
+
+  function getAudio() {
+    if (audioCtx) return audioCtx;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try { audioCtx = new Ctx(); } catch (e) { audioCtx = null; }
+    return audioCtx;
+  }
+
+  function blip(freq, dur, when, gain, type) {
+    var ctx = getAudio();
+    if (!ctx) return;
+    try {
+      if (ctx.state === "suspended") ctx.resume();
+      var t = ctx.currentTime + (when || 0);
+      var osc = ctx.createOscillator();
+      var amp = ctx.createGain();
+      osc.type = type || "triangle";
+      osc.frequency.setValueAtTime(freq, t);
+      amp.gain.setValueAtTime(0.0001, t);
+      amp.gain.exponentialRampToValueAtTime(gain || 0.06, t + 0.012);
+      amp.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(amp).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+
+  function sfxTurn() {
+    blip(180, 0.08, 0, 0.05, "square");
+    blip(150, 0.09, 0.13, 0.05, "square");
+    blip(200, 0.1, 0.28, 0.05, "square");
+  }
+
+  function sfxDing(rank) {
+    var base = rank === 1 ? 660 : rank === 2 ? 590 : 523;
+    blip(base, 0.16, 0, 0.07, "sine");
+    blip(base * 1.5, 0.22, 0.1, 0.05, "sine");
+    blip(base * 2, 0.3, 0.2, 0.04, "sine");
+  }
+
+  function renderSlots() {
+    el.slots.innerHTML = "";
+    for (var i = 0; i < TOTAL_DRAWS; i++) {
+      var s = document.createElement("span");
+      s.className = "slot " + (i < round().draws.length ? "is-used" : "is-full");
+      el.slots.appendChild(s);
+    }
+    el.roundLabel.textContent = "第 " + round().round + " 轮 · 剩余扭蛋";
+    el.btnTurn.disabled = remaining() <= 0 || busy;
+    el.btnTurn.textContent = remaining() > 0 ? "转动扭蛋机" : "机会已用完";
+  }
+
+  function enterMachine() {
+    renderSlots();
+    showScreen(el.screenMachine);
+    el.machine.classList.remove("is-dropped", "is-turning");
+    el.trayCapsule.style.opacity = "0";
+    el.trayCapsule.style.bottom = "-46px";
+    el.machineSign.classList.remove("is-hidden");
+  }
+
+  function enterForm() {
+    var r = round();
+    el.whoName.textContent = state.nickname || "—";
+    el.whoRound.textContent = String(r.round);
+    el.qName.value = r.name || "";
+    el.qBirth.value = r.birthday || "";
+    el.qWish.value = r.wish || "";
+    el.wishCount.textContent = (r.wish || "").length + "/60";
+    [el.fName, el.fBirth, el.fWish].forEach(function (f) { f.classList.remove("is-error"); });
+    showScreen(el.screenForm);
+  }
+
+  function markError(field) {
+    field.classList.add("is-error");
+  }
+
+  function clearError(field) {
+    field.classList.remove("is-error");
+  }
+
+  function focusFirstError() {
+    var firstErr = document.querySelector(".field.is-error");
+    if (!firstErr) return;
+    if (firstErr.scrollIntoView) firstErr.scrollIntoView({ behavior: "smooth", block: "center" });
+    var input = firstErr.querySelector(".field__input");
+    if (input) setTimeout(function () {
+      try { input.focus({ preventScroll: true }); } catch (err) { input.focus(); }
+    }, 240);
+  }
+
+  function doLogin(e) {
+    e.preventDefault();
+    var nick = el.qNick.value.trim();
+    if (!nick) {
+      markError(el.fNick);
+      el.qNick.focus();
+      return;
+    }
+    clearError(el.fNick);
+    var token = uuid();
+    var done = function () {
+      state.token = token;
+      state.nickname = nick;
+      state.createdAt = new Date().toISOString();
+      state.rounds = [newRound(1)];
+      saveState();
+      blip(520, 0.12, 0, 0.05, "sine");
+      blip(780, 0.18, 0.09, 0.045, "sine");
+      enterForm();
+    };
+
+    if (!online()) { done(); return; }
+
+    el.btnLogin.disabled = true;
+    el.btnLogin.textContent = "正在登录…";
+    rpc("fn_login", { p_token: token, p_nickname: nick }).then(function (r) {
+      el.btnLogin.disabled = false;
+      el.btnLogin.textContent = "进入扭蛋机";
+      if (r && r.error) {
+        toast("登录失败，请稍后再试");
+        return;
+      }
+      done();
+    }).catch(function (err) {
+      el.btnLogin.disabled = false;
+      el.btnLogin.textContent = "进入扭蛋机";
+      toast(cloudErrorText(err, "连不上服务器，检查网络后再试"));
+    });
+  }
+
+  function submitForm(e) {
+    e.preventDefault();
+    var name = el.qName.value.trim();
+    var birth = el.qBirth.value;
+    var wish = el.qWish.value.trim();
+    if (!name) markError(el.fName);
+    if (!birth) markError(el.fBirth);
+    if (!wish) markError(el.fWish);
+    if (!name || !birth || !wish) {
+      focusFirstError();
+      return;
+    }
+
+    var r = round();
+    r.name = name;
+    r.birthday = birth;
+    r.wish = wish;
+    r.answeredAt = new Date().toISOString();
+    r.draws = [];
+    r.finishedAt = "";
+    saveState();
+
+    if (online()) {
+      enqueue("fn_answer", {
+        p_token: state.token,
+        p_round: r.round,
+        p_name: name,
+        p_birthday: birth,
+        p_wish: wish
+      });
+    }
+
+    blip(520, 0.12, 0, 0.05, "sine");
+    blip(780, 0.18, 0.09, 0.045, "sine");
+    enterMachine();
+  }
+
+  function drawFromServer() {
+    return rpc("fn_draw", { p_token: state.token, p_round: round().round }).then(function (r) {
+      if (r && r.error) throw new Error(r.error);
+      return r;
+    });
+  }
+
+  function turn() {
+    if (busy || remaining() <= 0) return;
+    restoreBalls();
+    busy = true;
+    el.btnTurn.disabled = true;
+    el.machineSign.classList.add("is-hidden");
+    el.machine.classList.add("is-turning");
+    sfxTurn();
+
+    var startedAt = Date.now();
+    var minTurn = 1020;
+
+    var request = online()
+      ? drawFromServer().then(function (r) {
+          return { prize: prizeByKey(r.prize_key), index: Number(r.draw_index) };
+        })
+      : Promise.resolve({ prize: pickPrizeLocal(round().draws), index: round().draws.length + 1 });
+
+    request.then(function (res) {
+      if (!res.prize) throw new Error("bad_prize");
+      var wait = Math.max(0, minTurn - (Date.now() - startedAt));
+      setTimeout(function () {
+        el.machine.classList.remove("is-turning");
+        el.trayCapsule.style.setProperty("--pc", res.prize.color);
+        el.machine.classList.add("is-dropped");
+        blip(120, 0.09, 0, 0.07, "sine");
+        setTimeout(function () {
+          openReveal(res.prize, res.index || round().draws.length + 1);
+        }, 480);
+      }, wait);
+    }).catch(function (err) {
+      busy = false;
+      el.machine.classList.remove("is-turning");
+      el.machineSign.classList.remove("is-hidden");
+      renderSlots();
+      if (String(err.message).indexOf("no_chances") >= 0) {
+        toast("这一轮的机会已经用完了");
+        finish();
+      } else {
+        toast(cloudErrorText(err, "网络开小差，再转一次试试"));
+      }
+    });
+  }
+
+  function ballsInDome() {
+    return el.machine.querySelectorAll(".ball");
+  }
+
+  function takeOneBall() {
+    var list = [].filter.call(ballsInDome(), function (b) { return b.style.opacity !== "0"; });
+    if (!list.length) return null;
+    var b = list[Math.floor(Math.random() * list.length)];
+    b.style.transition = "transform .34s ease-in,opacity .34s ease-in";
+    b.style.transform = "translateX(-50%) translateY(64px) scale(.72) rotate(140deg)";
+    b.style.opacity = "0";
+    return b;
+  }
+
+  function restoreBalls() {
+    [].forEach.call(ballsInDome(), function (b) {
+      b.style.transition = "";
+      b.style.transform = "";
+      b.style.opacity = "";
+    });
+  }
+
+  function openReveal(prize, index) {
+    takeOneBall();
+    var draw = {
+      index: index,
+      rank: prize.rank,
+      key: prize.key,
+      label: prize.label,
+      name: prize.name,
+      at: new Date().toISOString()
+    };
+    round().draws.push(draw);
+    saveState();
+
+    el.capsule.style.setProperty("--pc", prize.color);
+    el.capsule.classList.remove("is-open");
+    el.prizeCard.classList.remove("is-show");
+    el.reveal.classList.add("is-open");
+    document.body.classList.add("is-locked");
+
+    el.prizeRank.textContent = prize.label;
+    el.prizeRank.style.background = prize.color;
+    el.prizeRank.style.color = prize.rank === 3 ? "#0F2A24" : "#fff";
+    el.prizeIcon.textContent = prize.icon;
+    el.prizeTitle.textContent = prize.name;
+    el.prizeNote.textContent = prize.note;
+    el.prizeMeta.textContent = "第 " + index + " 次扭蛋 · " + timeText(draw.at);
+
+    el.btnNext.textContent = remaining() > 0 ? "再扭一次（还剩 " + remaining() + " 次）" : "看看最终结果";
+
+    requestAnimationFrame(function () {
+      el.capsule.classList.add("is-shaking");
+      blip(300, 0.05, 0, 0.04, "square");
+      setTimeout(function () {
+        el.capsule.classList.remove("is-shaking");
+        el.capsule.classList.add("is-open");
+        sfxDing(prize.rank);
+        setTimeout(function () { el.prizeCard.classList.add("is-show"); }, 200);
+      }, 620);
+    });
+
+    busy = false;
+    renderSlots();
+  }
+
+  function closeReveal() {
+    el.reveal.classList.remove("is-open");
+    document.body.classList.remove("is-locked");
+    el.machine.classList.remove("is-dropped");
+    el.trayCapsule.style.opacity = "0";
+    el.machineSign.classList.remove("is-hidden");
+  }
+
+  function nextStep() {
+    closeReveal();
+    if (remaining() <= 0) {
+      setTimeout(finish, 280);
+    } else {
+      setTimeout(function () {
+        el.trayCapsule.style.bottom = "-46px";
+        renderSlots();
+      }, 200);
+    }
+  }
+
+  function finish() {
+    var r = round();
+    if (!r.finishedAt) {
+      r.finishedAt = new Date().toISOString();
+      r.voucher = voucherNo(r.round);
+      saveState();
+    }
+    renderFinal();
+    showScreen(el.screenFinal);
+    burstConfetti();
+    blip(523, 0.14, 0, 0.06, "sine");
+    blip(659, 0.14, 0.12, 0.06, "sine");
+    blip(784, 0.24, 0.24, 0.06, "sine");
+    blip(1046, 0.4, 0.38, 0.05, "sine");
+  }
+
+  function voucherNo(n) {
+    var t = (state.token || "").replace(/-/g, "").slice(0, 6).toUpperCase();
+    return "BD-" + (t || "XXXXXX") + "-R" + n;
+  }
+
+  function renderFinal() {
+    var r = round();
+    var best = bestOf(r.draws);
+    if (!best) return;
+
+    el.finalEyebrow.textContent = "第 " + r.round + " 轮 · 三次机会已用完";
+
+    el.trophy.innerHTML =
+      '<div class="trophy__icon">' + best.icon + "</div>" +
+      '<p class="trophy__label">最终 · ' + best.label + "</p>" +
+      '<h2 class="trophy__title">' + best.name + "</h2>" +
+      '<p class="trophy__sub">' + best.note + "</p>";
+
+    var rows = r.draws.map(function (d, i) {
+      var p = prizeByKey(d.key);
+      return '<li><span class="draws__dot" style="background:' + (p ? p.color : "#FFC44D") + '"></span>' +
+        '<span class="draws__idx">第 ' + (i + 1) + " 次</span>" +
+        '<span class="draws__name">' + esc(d.label) + "</span>" +
+        '<span class="draws__time">' + timeText(d.at) + "</span></li>";
+    }).join("");
+
+    el.voucher.innerHTML =
+      '<div class="voucher__head">' +
+        '<span class="voucher__name">' + esc(r.name || "寿星") + "</span>" +
+        '<span class="voucher__no">' + esc(r.voucher || voucherNo(r.round)) + "</span>" +
+      "</div>" +
+      '<div class="voucher__row"><span class="voucher__k">登录账号</span><span class="voucher__v">' + esc(state.nickname || "—") + "</span></div>" +
+      '<div class="voucher__row"><span class="voucher__k">出生日期</span><span class="voucher__v">' + esc(r.birthday || "—") + "</span></div>" +
+      '<div class="voucher__row"><span class="voucher__k">心愿</span><span class="voucher__v">' + esc(r.wish || "—") + "</span></div>" +
+      '<div class="voucher__row"><span class="voucher__k">最终奖项</span><span class="voucher__v">' + esc(best.label) + " · " + esc(best.name) + "</span></div>" +
+      '<div class="voucher__row" style="display:block"><span class="voucher__k">三次记录</span><ul class="draws">' + rows + "</ul></div>";
+
+    var past = state.rounds.filter(function (x) { return x.round !== r.round && x.finishedAt; });
+    if (past.length) {
+      el.pastBox.hidden = false;
+      el.pastList.innerHTML = past.slice().reverse().map(function (x) {
+        var b = bestOf(x.draws);
+        return '<div class="past__item"><span class="past__round">第 ' + x.round + " 轮</span>" +
+          '<span>' + esc(x.name) + "</span>" +
+          '<span class="past__prize">' + (b ? esc(b.label) + " · " + esc(b.name) : "—") + "</span></div>";
+      }).join("");
+    } else {
+      el.pastBox.hidden = true;
+    }
+  }
+
+  function playAgain() {
+    state.rounds.push(newRound(round().round + 1));
+    saveState();
+    enterForm();
+    toast("重新答三题，就能再扭三次");
+  }
+
+  function esc(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function timeText(iso) {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return "";
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  function burstConfetti() {
+    var colors = ["#FF5B6E", "#FFC44D", "#3FD3AF", "#A98BFF", "#FFF7EC"];
+    for (var i = 0; i < 46; i++) {
+      var bit = document.createElement("i");
+      bit.style.left = Math.random() * 100 + "%";
+      bit.style.background = colors[Math.floor(Math.random() * colors.length)];
+      bit.style.animationDuration = (1.9 + Math.random() * 1.6) + "s";
+      bit.style.animationDelay = (Math.random() * 0.7) + "s";
+      bit.style.width = (6 + Math.random() * 6) + "px";
+      bit.style.height = (9 + Math.random() * 8) + "px";
+      el.confetti.appendChild(bit);
+      (function (node) { setTimeout(function () { node.remove(); }, 4200); })(bit);
+    }
+  }
+
+  function copyVoucher() {
+    var r = round();
+    var best = bestOf(r.draws);
+    if (!best) return;
+    var lines = [
+      "生日扭蛋机 · 兑奖凭证",
+      "凭证号：" + (r.voucher || voucherNo(r.round)),
+      "登录账号：" + (state.nickname || "—"),
+      "寿星：" + (r.name || "—"),
+      "出生日期：" + (r.birthday || "—"),
+      "心愿：" + (r.wish || "—"),
+      "三次结果：" + r.draws.map(function (d) { return d.label; }).join("、"),
+      "最终奖项：" + best.label + " · " + best.name
+    ];
+    var text = lines.join("\n");
+    var done = function () { toast("凭证已复制，去粘贴给寿星吧"); };
+    var fail = function () { toast("复制失败，请直接截图"); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(function () {
+        legacyCopy(text) ? done() : fail();
+      });
+    } else {
+      legacyCopy(text) ? done() : fail();
+    }
+  }
+
+  function legacyCopy(text) {
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, ta.value.length);
+      var ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function readOutbox() {
+    try {
+      var raw = localStorage.getItem(OUTBOX_KEY);
+      var arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function writeOutbox(arr) {
+    try { localStorage.setItem(OUTBOX_KEY, JSON.stringify(arr.slice(0, 40))); } catch (e) {}
+  }
+
+  function enqueue(name, payload) {
+    var q = readOutbox();
+    q.push({ name: name, payload: payload });
+    writeOutbox(q);
+    flushOutbox();
+  }
+
+  var flushing = false;
+
+  function flushOutbox() {
+    if (flushing || !online()) return;
+    var q = readOutbox();
+    if (!q.length) return;
+    flushing = true;
+
+    var step = function () {
+      if (!q.length) { flushing = false; return; }
+      var job = q[0];
+      rpc(job.name, job.payload).then(function () {
+        q.shift();
+        writeOutbox(q);
+        step();
+      }).catch(function () {
+        flushing = false;
+      });
+    };
+
+    step();
+  }
+
+  function resetAll() {
+    try {
+      localStorage.removeItem(STORE_KEY);
+      localStorage.removeItem(OUTBOX_KEY);
+    } catch (e) {}
+    state = blankState();
+    el.loginForm.reset();
+    el.form.reset();
+    el.wishCount.textContent = "0/60";
+    showScreen(el.screenLogin);
+    toast("已退出，可换个称呼重新登录");
+  }
+
+  function bindEvents() {
+    el.loginForm.addEventListener("submit", doLogin);
+    el.form.addEventListener("submit", submitForm);
+
+    el.qNick.addEventListener("input", function () { clearError(el.fNick); });
+    el.qWish.addEventListener("input", function () {
+      el.wishCount.textContent = el.qWish.value.length + "/60";
+      clearError(el.fWish);
+    });
+    el.qName.addEventListener("input", function () { clearError(el.fName); });
+    el.qBirth.addEventListener("input", function () { clearError(el.fBirth); });
+    el.qBirth.addEventListener("change", function () { clearError(el.fBirth); });
+
+    el.btnTurn.addEventListener("click", turn);
+    el.knob.addEventListener("click", turn);
+    el.btnNext.addEventListener("click", nextStep);
+    el.btnCopy.addEventListener("click", copyVoucher);
+    el.btnAgain.addEventListener("click", playAgain);
+
+    el.reveal.addEventListener("click", function (e) {
+      if (e.target === el.reveal && el.prizeCard.classList.contains("is-show")) nextStep();
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && el.reveal.classList.contains("is-open") && el.prizeCard.classList.contains("is-show")) {
+        nextStep();
+      }
+    });
+
+    el.quit.addEventListener("click", function () {
+      var ok = window.confirm("退出后会回到登录页，可以用新的昵称重新开始。\n本机记录会清空，已经上传到云端的记录不受影响。确定退出吗？");
+      if (ok) resetAll();
+    });
+
+    window.addEventListener("online", flushOutbox);
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) flushOutbox();
+    });
+  }
+
+  function reduceMotion() {
+    return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  }
+
+  function initBackground() {
+    var wrap = document.getElementById("bg");
+    if (!wrap) return;
+
+    var slides = PHOTOS.map(function (p, i) {
+      var d = document.createElement("div");
+      d.className = "bg__slide" + (i === 0 ? " is-on" : "");
+      d.style.backgroundImage = 'url("' + p.src + '")';
+      d.style.backgroundPosition = p.pos;
+      wrap.appendChild(d);
+      return d;
+    });
+
+    if (slides.length < 2 || reduceMotion()) return;
+
+    var current = 0;
+    var timer = null;
+
+    var tick = function () {
+      slides[current].classList.remove("is-on");
+      current = (current + 1) % slides.length;
+      slides[current].classList.add("is-on");
+    };
+    var start = function () {
+      if (timer) return;
+      timer = setInterval(tick, 3000);
+    };
+    var stop = function () {
+      clearInterval(timer);
+      timer = null;
+    };
+
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) stop();
+      else start();
+    });
+
+    start();
+  }
+
+  function initDanmaku() {
+    var box = document.getElementById("danmaku");
+    if (!box || reduceMotion()) return;
+
+    var count = window.innerWidth < 380 ? 10 : 12;
+
+    for (var i = 0; i < count; i++) {
+      var w = 168 + Math.round(Math.random() * 74);
+      var y = 7 + (i % count) * (82 / count) + (Math.random() * 3 - 1.5);
+      var node = document.createElement("div");
+
+      node.className = "dm" + (i % 3 === 0 ? " dm--dashed" : "");
+      node.style.setProperty("--w", w + "px");
+      node.style.setProperty("--h", Math.round(w * 0.4) + "px");
+      node.style.setProperty("--y", y.toFixed(1) + "%");
+      node.style.setProperty("--dur", (17 + Math.random() * 11).toFixed(1) + "s");
+      node.style.setProperty("--delay", (-Math.random() * 18).toFixed(1) + "s");
+      node.style.setProperty("--op", (0.28 + Math.random() * 0.18).toFixed(2));
+      node.innerHTML = CLOUD_SVG + '<span class="dm__text">' + WISHES[i % WISHES.length] + "</span>";
+      box.appendChild(node);
+    }
+  }
+
+  function boot() {
+    bindEvents();
+    initBackground();
+    initDanmaku();
+    if (!state.token) {
+      showScreen(el.screenLogin);
+    } else if (round().finishedAt && round().draws.length >= TOTAL_DRAWS) {
+      renderFinal();
+      showScreen(el.screenFinal);
+    } else if (round().answeredAt) {
+      enterMachine();
+    } else {
+      enterForm();
+    }
+    flushOutbox();
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
