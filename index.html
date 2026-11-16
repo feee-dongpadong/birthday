@@ -43,7 +43,7 @@
     background-position:center center;
     background-repeat:no-repeat;
     opacity:0;z-index:0;
-    transition:opacity 1.4s ease-in-out;
+    transition:opacity 1s ease-in-out;
     will-change:opacity;
   }
   .bg__slide.is-on{opacity:1;z-index:1}
@@ -82,7 +82,6 @@
     stroke:rgba(216,238,255,.82);
     stroke-width:1.9;
     stroke-linejoin:round;
-    filter:drop-shadow(0 3px 9px rgba(8,20,42,.7));
   }
   .dm--dashed .dm__path{stroke-dasharray:6 6}
   .dm__text{
@@ -103,7 +102,7 @@
   .app{
     position:relative;z-index:4;
     width:100%;max-width:440px;margin:0 auto;
-    padding:calc(18px + env(safe-area-inset-top)) 20px calc(34px + env(safe-area-inset-bottom));
+    padding:calc(18px + env(safe-area-inset-top)) 20px calc(88px + env(safe-area-inset-bottom));
     min-height:100vh;min-height:100dvh;
     display:flex;flex-direction:column;
   }
@@ -141,14 +140,15 @@
   .hero__sub{margin:0;font-size:14px;color:var(--muted);line-height:1.6;text-shadow:0 2px 10px rgba(4,10,26,.75)}
 
   .card{
-    background:rgba(255,255,255,.16);
+    background:rgba(255,255,255,.07);
     color:#fff;
-    border:1.5px solid rgba(255,255,255,.55);
+    border:1px solid rgba(255,255,255,.52);
     border-radius:26px;
     padding:22px 18px 18px;
-    box-shadow:0 12px 32px rgba(4,10,24,.26),inset 0 1px 0 rgba(255,255,255,.45);
-    -webkit-backdrop-filter:blur(20px) saturate(1.2);
-    backdrop-filter:blur(20px) saturate(1.2);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.38),
+      inset 0 0 40px rgba(255,255,255,.04),
+      0 14px 34px rgba(4,10,24,.24);
   }
 
   .who{
@@ -171,19 +171,20 @@
   }
   .field__input{
     width:100%;font-family:inherit;font-size:16px;color:#fff;
-    background:rgba(20,28,52,.38);
-    border:1.5px solid rgba(255,255,255,.42);
+    background:rgba(12,18,36,.18);
+    border:1px solid rgba(255,255,255,.48);
     border-radius:15px;
     padding:12px 14px;outline:none;transition:box-shadow .16s ease,transform .16s ease;
     box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
-    -webkit-backdrop-filter:blur(10px) saturate(1.2);
-    backdrop-filter:blur(10px) saturate(1.2);
-    text-shadow:0 1px 4px rgba(0,0,0,.35);
+    text-shadow:0 1px 6px rgba(0,0,0,.55),0 0 2px rgba(0,0,0,.4);
     -webkit-appearance:none;appearance:none;
   }
   .field__input::placeholder{color:rgba(255,255,255,.62)}
   .field__input:focus{box-shadow:0 0 0 3px rgba(255,255,255,.28),inset 0 1px 0 rgba(255,255,255,.25)}
   .field__input::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.75}
+  .field__input[type="date"].is-empty{color:transparent}
+  .field__input[type="date"].is-empty::-webkit-datetime-edit,
+  .field__input[type="date"].is-empty::-webkit-datetime-edit-fields-wrapper{color:transparent;opacity:0}
   textarea.field__input{resize:none;min-height:92px;line-height:1.55;padding-top:11px}
   .field__foot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;min-height:16px}
   .field__err{font-size:11.5px;color:#FFC2CC;font-weight:700;opacity:0;transition:opacity .2s;text-shadow:0 1px 6px rgba(4,10,24,.6)}
@@ -279,12 +280,10 @@
   }
   .machine__body{
     position:relative;margin-top:-7px;height:188px;
-    background:linear-gradient(178deg,rgba(255,107,125,.80) 0%,rgba(238,74,97,.77) 62%,rgba(213,55,80,.74) 100%);
+    background:linear-gradient(178deg,rgba(255,107,125,.55) 0%,rgba(238,74,97,.52) 62%,rgba(213,55,80,.50) 100%);
     border:2.5px solid var(--ink);
     border-radius:15px 15px 26px 26px;
-    box-shadow:inset -12px 0 0 rgba(0,0,0,.08),inset 12px 0 0 rgba(255,255,255,.16),inset 0 -20px 30px rgba(120,10,40,.18);
-    -webkit-backdrop-filter:blur(9px) saturate(1.15);
-    backdrop-filter:blur(9px) saturate(1.15);
+    box-shadow:inset -12px 0 0 rgba(0,0,0,.06),inset 12px 0 0 rgba(255,255,255,.18),inset 0 -20px 30px rgba(120,10,40,.14);
   }
   .machine__plate{
     position:absolute;left:50%;top:9px;transform:translateX(-50%);
@@ -359,8 +358,7 @@
     position:fixed;inset:0;z-index:60;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:26px 22px calc(26px + env(safe-area-inset-bottom));
-    background:rgba(16,10,28,.84);
-    -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);
+    background:radial-gradient(circle at 50% 42%,rgba(18,12,32,.78),rgba(12,8,22,.92));
     opacity:0;visibility:hidden;
     transition:opacity .3s ease,visibility .3s ease;
   }
@@ -391,8 +389,6 @@
     border:1.5px solid rgba(255,255,255,.5);border-radius:24px;
     padding:22px 20px 18px;
     box-shadow:0 14px 40px rgba(4,10,24,.45),inset 0 1px 0 rgba(255,255,255,.26);
-    -webkit-backdrop-filter:blur(18px) saturate(1.2);
-    backdrop-filter:blur(18px) saturate(1.2);
     opacity:0;transform:translateY(16px) scale(.9);
     transition:opacity .38s ease,transform .42s cubic-bezier(.18,1.3,.4,1);
   }
@@ -417,8 +413,6 @@
     color:#fff;border:1.5px solid rgba(255,255,255,.45);border-radius:26px;
     padding:22px 20px 24px;
     box-shadow:0 14px 40px rgba(4,10,24,.4),inset 0 1px 0 rgba(255,255,255,.24);
-    -webkit-backdrop-filter:blur(18px) saturate(1.2);
-    backdrop-filter:blur(18px) saturate(1.2);
     overflow:hidden;
   }
   .trophy::before{
@@ -435,8 +429,6 @@
     margin-top:16px;background:rgba(20,27,49,.60);color:#fff;
     border:1.5px solid rgba(255,255,255,.42);border-radius:22px;
     padding:18px 18px 16px;position:relative;
-    -webkit-backdrop-filter:blur(16px) saturate(1.2);
-    backdrop-filter:blur(16px) saturate(1.2);
     box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
   }
   .voucher__head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding-bottom:12px;border-bottom:2px dashed rgba(255,255,255,.28)}
@@ -493,43 +485,67 @@
   }
   .toast.is-show{opacity:1;transform:translate(-50%,0)}
 
-  .disc{
-    position:fixed;
-    left:18px;
-    top:calc(12px + env(safe-area-inset-top));
-    width:52px;height:52px;
-    padding:0;border:0;border-radius:50%;
-    cursor:pointer;z-index:6;
-    -webkit-appearance:none;
-    background:
-      repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.085) 0 1px, rgba(0,0,0,0) 1px 3.2px),
-      radial-gradient(circle at 34% 26%, rgba(255,255,255,.30), rgba(255,255,255,0) 46%),
-      radial-gradient(circle at 50% 50%, #332B4D 0 68%, #141020 100%);
-    box-shadow:0 10px 22px rgba(4,10,24,.45),inset 0 0 0 1px rgba(255,255,255,.18);
-    animation:discSpin 3.6s linear infinite;
-    animation-play-state:paused;
-    transition:box-shadow .25s ease;
+
+  .player{
+    position:fixed;left:16px;right:16px;bottom:calc(14px + env(safe-area-inset-bottom));
+    max-width:408px;margin:0 auto;
+    display:flex;align-items:center;gap:10px;
+    height:62px;padding:0 12px 0 9px;
+    border-radius:999px;
+    background:rgba(255,255,255,.13);
+    border:1px solid rgba(255,255,255,.5);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.42),0 12px 28px rgba(4,10,24,.3);
+    z-index:6;
   }
-  .disc::before{
-    content:"";
-    position:absolute;left:50%;top:50%;
-    width:20px;height:20px;margin:-10px 0 0 -10px;
-    border-radius:50%;
-    background:radial-gradient(circle at 35% 30%,#FF8B9B,#FF5B6E 62%,#D93A52);
-    box-shadow:0 0 0 3px rgba(255,255,255,.16);
+  .player__art{
+    width:44px;height:44px;flex:0 0 auto;border-radius:50%;padding:0;
+    border:1px solid rgba(255,255,255,.55);
+    background:radial-gradient(circle at 35% 30%,#FFC9D3,#FF5B6E 62%,#C9334B);
+    color:#fff;font-size:16px;line-height:1;display:grid;place-items:center;
+    -webkit-appearance:none;cursor:pointer;
+    box-shadow:0 4px 12px rgba(4,10,24,.35);
   }
-  .disc::after{
-    content:"";
-    position:absolute;left:50%;top:50%;
-    width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
-    border-radius:50%;background:rgba(16,12,26,.9);
+  .player__info{flex:1;min-width:0}
+  .player__title{
+    margin:0;font-size:13.5px;font-weight:700;color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-shadow:0 1px 6px rgba(0,0,0,.55);
   }
-  .disc.is-playing{
-    animation-play-state:running;
-    box-shadow:0 10px 26px rgba(255,91,110,.34),0 0 0 1px rgba(255,255,255,.24),inset 0 0 0 1px rgba(255,255,255,.2);
+  .player__btn{
+    width:34px;height:34px;flex:0 0 auto;border-radius:50%;
+    display:grid;place-items:center;padding:0;cursor:pointer;
+    background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.45);
+    color:#fff;-webkit-appearance:none;
+    transition:background .2s,transform .15s;
   }
-  .disc:focus-visible{outline:2px solid rgba(255,255,255,.85);outline-offset:3px}
-  @keyframes discSpin{to{transform:rotate(360deg)}}
+  .player__btn:active{transform:scale(.94);background:rgba(255,255,255,.22)}
+  .player__btn svg{display:block}
+  .player__btn .i-pause{display:none}
+  .player__btn.is-playing .i-play{display:none}
+  .player__btn.is-playing .i-pause{display:block}
+
+  .playlist{
+    position:fixed;left:16px;right:16px;bottom:calc(86px + env(safe-area-inset-bottom));
+    max-width:408px;margin:0 auto;
+    max-height:44vh;overflow:auto;
+    padding:8px;
+    border-radius:20px;
+    background:rgba(18,24,44,.74);
+    border:1px solid rgba(255,255,255,.4);
+    box-shadow:0 14px 34px rgba(4,10,24,.45);
+    z-index:7;
+  }
+  .playlist[hidden]{display:none}
+  .pl-item{
+    display:flex;align-items:center;gap:10px;width:100%;
+    padding:10px 8px;border:0;border-radius:12px;background:transparent;
+    color:#fff;font-family:inherit;font-size:13px;text-align:left;cursor:pointer;
+  }
+  .pl-item.is-current{background:rgba(255,255,255,.14)}
+  .pl-item__n{width:16px;flex:0 0 auto;color:rgba(255,255,255,.6);font-size:11px}
+  .pl-item__t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pl-empty{margin:10px 8px;font-size:12.5px;line-height:1.75;color:rgba(255,255,255,.72)}
 
   @media (max-width:350px){
     .hero__title{font-size:29px}
@@ -575,7 +591,7 @@
     <form class="card" id="loginForm" novalidate>
       <label class="field" id="fNick">
         <span class="field__label"><i class="field__num">名</i>你的称呼</span>
-        <input class="field__input" id="qNick" type="text" inputmode="text" maxlength="12" autocomplete="nickname" placeholder="比如：小雨" />
+        <input class="field__input" id="qNick" type="text" inputmode="text" maxlength="12" autocomplete="nickname" />
         <span class="field__foot"><span class="field__err">留个称呼吧，方便兑奖时对号</span></span>
       </label>
       <button class="btn btn--coral" type="submit" id="btnLogin">进入扭蛋机</button>
@@ -593,7 +609,7 @@
     <form class="card" id="form" novalidate>
       <label class="field" id="fName">
         <span class="field__label"><i class="field__num">1</i>今天是谁的生日</span>
-        <input class="field__input" id="qName" type="text" inputmode="text" maxlength="20" autocomplete="off" placeholder="写下寿星的名字" />
+        <input class="field__input" id="qName" type="text" inputmode="text" maxlength="20" autocomplete="off" />
         <span class="field__foot"><span class="field__err">还没写名字哦</span></span>
       </label>
 
@@ -605,7 +621,7 @@
 
       <label class="field" id="fWish">
         <span class="field__label"><i class="field__num">3</i>许下你的心愿</span>
-        <textarea class="field__input" id="qWish" maxlength="60" placeholder="想对寿星说的话，都能写在这里"></textarea>
+        <textarea class="field__input" id="qWish" maxlength="60"></textarea>
         <span class="field__foot"><span class="field__err">心愿还没许呢</span><span class="field__count" id="wishCount">0/60</span></span>
       </label>
 
@@ -681,7 +697,19 @@
   </section>
 </main>
 
-<button class="disc" id="disc" type="button" aria-pressed="false" aria-label="播放生日歌"></button>
+<div class="player" id="player">
+  <button class="player__art" id="plArt" type="button" aria-label="播放或暂停">♪</button>
+  <div class="player__info"><p class="player__title" id="plTitle">还没有添加歌曲</p></div>
+  <button class="player__btn" id="plPlay" type="button" aria-label="播放" aria-pressed="false">
+    <svg class="i-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 5.4v13.2L19 12z"/></svg>
+    <svg class="i-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><rect x="7" y="5" width="3.4" height="14" rx="1.2"/><rect x="13.6" y="5" width="3.4" height="14" rx="1.2"/></svg>
+  </button>
+  <button class="player__btn" id="plList" type="button" aria-label="歌单" aria-expanded="false">
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M4 7h11M4 12h11M4 17h7"/><path d="M17.4 6.6v8.1"/><circle cx="15.9" cy="16.3" r="2.1"/></svg>
+  </button>
+</div>
+<div class="playlist" id="playlist" hidden></div>
+
 
 <div class="reveal" id="reveal" role="dialog" aria-modal="true" aria-live="polite">
   <div class="capsule" id="capsule">
@@ -760,7 +788,12 @@
 
   var el = {
     brand: document.getElementById("brand"),
-    disc: document.getElementById("disc"),
+    player: document.getElementById("player"),
+    plArt: document.getElementById("plArt"),
+    plTitle: document.getElementById("plTitle"),
+    plPlay: document.getElementById("plPlay"),
+    plList: document.getElementById("plList"),
+    playlist: document.getElementById("playlist"),
     quit: document.getElementById("btnQuit"),
     screenLogin: document.getElementById("screenLogin"),
     screenForm: document.getElementById("screenForm"),
@@ -1029,6 +1062,10 @@
     el.machineSign.classList.remove("is-hidden");
   }
 
+  function syncBirth() {
+    if (el.qBirth) el.qBirth.classList.toggle("is-empty", !el.qBirth.value);
+  }
+
   function enterForm() {
     var r = round();
     el.whoName.textContent = state.nickname || "—";
@@ -1037,6 +1074,7 @@
     el.qBirth.value = r.birthday || "";
     el.qWish.value = r.wish || "";
     el.wishCount.textContent = (r.wish || "").length + "/60";
+    syncBirth();
     [el.fName, el.fBirth, el.fWish].forEach(function (f) { f.classList.remove("is-error"); });
     showScreen(el.screenForm);
   }
@@ -1485,8 +1523,9 @@
       clearError(el.fWish);
     });
     el.qName.addEventListener("input", function () { clearError(el.fName); });
-    el.qBirth.addEventListener("input", function () { clearError(el.fBirth); });
-    el.qBirth.addEventListener("change", function () { clearError(el.fBirth); });
+    el.qBirth.addEventListener("input", function () { clearError(el.fBirth); syncBirth(); });
+    el.qBirth.addEventListener("change", function () { clearError(el.fBirth); syncBirth(); });
+    syncBirth();
 
     el.btnTurn.addEventListener("click", turn);
     el.knob.addEventListener("click", turn);
@@ -1582,136 +1621,139 @@
     }
   }
 
-  var MUSIC = { playing: false, timer: null, nodes: [], audio: null, fileReady: false };
-
-  var NOTE_HZ = {
-    C4: 261.63, E4: 329.63, G4: 392.00, A4: 440.00, B4: 493.88,
-    C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99
-  };
-
-  var SONG = [
-    ["G4", 0.75], ["G4", 0.25], ["A4", 1], ["G4", 1], ["C5", 1], ["B4", 2],
-    ["G4", 0.75], ["G4", 0.25], ["A4", 1], ["G4", 1], ["D5", 1], ["C5", 2],
-    ["G4", 0.75], ["G4", 0.25], ["G5", 1], ["E5", 1], ["C5", 1], ["B4", 1], ["A4", 2],
-    ["F5", 0.75], ["F5", 0.25], ["E5", 1], ["C5", 1], ["D5", 1], ["C5", 2]
+  var TRACKS = [
+    { file: "music/1.mp3", title: "天外来物", artist: "薛之谦" },
+    { file: "music/2.mp3", title: "小尖尖", artist: "薛之谦 / 韩红" },
+    { file: "music/3.mp3", title: "渡", artist: "薛之谦" },
+    { file: "music/4.mp3", title: "方圆几里", artist: "薛之谦" },
+    { file: "music/5.mp3", title: "意外", artist: "薛之谦" },
+    { file: "music/6.mp3", title: "那是你离开了北京的生活", artist: "薛之谦" },
+    { file: "music/7.mp3", title: "凤毛麟角", artist: "薛之谦" },
+    { file: "music/8.mp3", title: "男二号", artist: "薛之谦" },
+    { file: "music/9.mp3", title: "动物世界", artist: "薛之谦" }
   ];
 
-  function musicNote(freq, at, dur) {
-    var ctx = getAudio();
-    if (!ctx) return;
-    var tone = ctx.createOscillator();
-    var halo = ctx.createOscillator();
-    var gain = ctx.createGain();
-    var haloGain = ctx.createGain();
-    var end = at + Math.min(dur * 1.15, 1.5);
+  var PLAYER = { index: 0, audio: null, playing: false };
 
-    tone.type = "sine";
-    tone.frequency.setValueAtTime(freq, at);
-    halo.type = "triangle";
-    halo.frequency.setValueAtTime(freq * 2, at);
-    haloGain.gain.setValueAtTime(0.22, at);
-
-    gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(0.17, at + 0.014);
-    gain.gain.exponentialRampToValueAtTime(0.0001, end);
-
-    tone.connect(gain);
-    halo.connect(haloGain);
-    haloGain.connect(gain);
-    gain.connect(ctx.destination);
-
-    tone.start(at);
-    halo.start(at);
-    tone.stop(end + 0.05);
-    halo.stop(end + 0.05);
-
-    MUSIC.nodes.push(tone, halo);
-    tone.onended = function () {
-      MUSIC.nodes = MUSIC.nodes.filter(function (n) { return n !== tone && n !== halo; });
-    };
+  function currentTrack() {
+    return TRACKS.length ? TRACKS[PLAYER.index] : null;
   }
 
-  function scheduleSong(at) {
-    var ctx = getAudio();
-    if (!ctx) return;
-    var beat = 0.56;
-    var t = at;
-    SONG.forEach(function (note) {
-      var dur = note[1] * beat;
-      musicNote(NOTE_HZ[note[0]], t, dur);
-      t += dur;
-    });
-    var total = t - at;
-    clearTimeout(MUSIC.timer);
-    MUSIC.timer = setTimeout(function () {
-      if (MUSIC.playing) scheduleSong(ctx.currentTime + 0.6);
-    }, (total + 1.2) * 1000);
+  function renderPlayer() {
+    var t = currentTrack();
+    if (el.plTitle) el.plTitle.textContent = t ? t.title + " - " + t.artist : "还没有添加歌曲";
+    if (el.plPlay) {
+      el.plPlay.classList.toggle("is-playing", PLAYER.playing);
+      el.plPlay.setAttribute("aria-pressed", PLAYER.playing ? "true" : "false");
+      el.plPlay.setAttribute("aria-label", PLAYER.playing ? "暂停" : "播放");
+    }
   }
 
-  function paintDisc() {
-    if (!el.disc) return;
-    el.disc.classList.toggle("is-playing", MUSIC.playing);
-    el.disc.setAttribute("aria-pressed", MUSIC.playing ? "true" : "false");
-    el.disc.setAttribute("aria-label", MUSIC.playing ? "关闭背景音乐" : "播放生日歌");
+  function setPlaying(on) {
+    PLAYER.playing = on;
+    renderPlayer();
   }
 
-  function playMusic() {
-    MUSIC.playing = true;
-    paintDisc();
-    if (MUSIC.fileReady && MUSIC.audio) {
-      var started = MUSIC.audio.play();
-      if (started && started.catch) started.catch(function () { startSynth(); });
+  function noTracksHint() {
+    toast("把 mp3 放进 music 文件夹，再在 TRACKS 里加一行");
+  }
+
+  function playTrack(i) {
+    if (!TRACKS.length) { noTracksHint(); return; }
+    PLAYER.index = (i + TRACKS.length) % TRACKS.length;
+    var track = TRACKS[PLAYER.index];
+    renderPlayer();
+    PLAYER.audio.src = track.file;
+    var started = PLAYER.audio.play();
+    if (started && started.then) {
+      started.then(function () { setPlaying(true); }).catch(function () {
+        setPlaying(false);
+        toast("这首没加载出来，检查文件名和路径");
+      });
+    } else {
+      setPlaying(true);
+    }
+  }
+
+  function togglePlay() {
+    if (!TRACKS.length) { noTracksHint(); return; }
+    if (PLAYER.playing) {
+      PLAYER.audio.pause();
+      setPlaying(false);
       return;
     }
-    startSynth();
-  }
-
-  function startSynth() {
-    var ctx = getAudio();
-    if (!ctx) return;
-    if (ctx.state === "suspended") ctx.resume();
-    scheduleSong(ctx.currentTime + 0.2);
-  }
-
-  function stopMusic() {
-    MUSIC.playing = false;
-    paintDisc();
-    clearTimeout(MUSIC.timer);
-    MUSIC.timer = null;
-    MUSIC.nodes.forEach(function (n) { try { n.stop(); } catch (e) {} });
-    MUSIC.nodes = [];
-    if (MUSIC.audio) { try { MUSIC.audio.pause(); } catch (e) {} }
-  }
-
-  function initMusic() {
-    if (!el.disc) return;
-
-    if (typeof Audio === "function") {
-      var track = new Audio("music/birthday.mp3");
-      track.loop = true;
-      track.preload = "auto";
-      track.addEventListener("canplay", function () { MUSIC.fileReady = true; });
-      track.addEventListener("error", function () { MUSIC.fileReady = false; });
-      MUSIC.audio = track;
+    if (!PLAYER.audio.src) { playTrack(PLAYER.index); return; }
+    var started = PLAYER.audio.play();
+    if (started && started.then) {
+      started.then(function () { setPlaying(true); }).catch(function () { toast("播放失败，再点一次试试"); });
+    } else {
+      setPlaying(true);
     }
+  }
 
-    paintDisc();
+  function renderPlaylist() {
+    if (!el.playlist) return;
+    if (!TRACKS.length) {
+      el.playlist.innerHTML = '<p class="pl-empty">还没有歌曲。把 mp3 放进 music 文件夹，再在 index.html 的 TRACKS 里加一行：<br />{ file: "music/1.mp3", title: "歌名", artist: "薛之谦" }</p>';
+      return;
+    }
+    el.playlist.innerHTML = TRACKS.map(function (t, i) {
+      return '<button class="pl-item' + (i === PLAYER.index ? " is-current" : "") + '" type="button" data-i="' + i + '">' +
+        '<span class="pl-item__n">' + (i + 1) + "</span>" +
+        '<span class="pl-item__t">' + esc(t.title) + " · " + esc(t.artist) + "</span>" +
+        "</button>";
+    }).join("");
+  }
 
-    el.disc.addEventListener("click", function () {
-      if (MUSIC.playing) stopMusic();
-      else playMusic();
+  function togglePlaylist() {
+    if (!el.playlist) return;
+    var open = el.playlist.hidden;
+    if (open) renderPlaylist();
+    el.playlist.hidden = !open;
+    el.plList.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function initPlayer() {
+    if (!el.player) return;
+
+    PLAYER.audio = new Audio();
+    PLAYER.audio.preload = "metadata";
+    PLAYER.audio.addEventListener("ended", function () {
+      if (TRACKS.length > 1) playTrack(PLAYER.index + 1);
+      else { PLAYER.audio.currentTime = 0; setPlaying(false); }
+    });
+    PLAYER.audio.addEventListener("pause", function () {
+      if (PLAYER.playing) setPlaying(false);
+    });
+
+    el.plPlay.addEventListener("click", togglePlay);
+    el.plArt.addEventListener("click", togglePlay);
+    el.plList.addEventListener("click", togglePlaylist);
+
+    el.playlist.addEventListener("click", function (e) {
+      var node = e.target;
+      while (node && node !== el.playlist && !(node.getAttribute && node.getAttribute("data-i"))) node = node.parentNode;
+      if (!node || node === el.playlist) return;
+      playTrack(Number(node.getAttribute("data-i")) || 0);
+      el.playlist.hidden = true;
+      el.plList.setAttribute("aria-expanded", "false");
     });
 
     document.addEventListener("visibilitychange", function () {
-      if (document.hidden && MUSIC.playing) stopMusic();
+      if (document.hidden && PLAYER.playing) {
+        PLAYER.audio.pause();
+        setPlaying(false);
+      }
     });
+
+    renderPlayer();
   }
 
   function boot() {
     bindEvents();
     initBackground();
     initDanmaku();
-    initMusic();
+    initPlayer();
     if (!state.token) {
       showScreen(el.screenLogin);
     } else if (round().finishedAt && round().draws.length >= TOTAL_DRAWS) {
